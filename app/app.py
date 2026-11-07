@@ -1,5 +1,6 @@
 from pathlib import Path
 
+import altair as alt
 import numpy as np
 import pandas as pd
 import streamlit as st
@@ -77,16 +78,37 @@ st.caption(
     "smaller losses than Bitcoin. VaR: on 95% of days, the daily loss was smaller than this."
 )
 
+def comparison_chart(port_series, btc_series, y_title, number_format):
+    """Line chart of portfolio vs Bitcoin with a formatted y-axis and hover tooltip."""
+    df = (pd.DataFrame({"Portfolio": port_series, "Bitcoin only": btc_series})
+          .rename_axis("Date").reset_index()
+          .melt("Date", var_name="Series", value_name="Value"))
+    return (
+        alt.Chart(df)
+        .mark_line(strokeWidth=2)
+        .encode(
+            x=alt.X("Date:T", title=None),
+            y=alt.Y("Value:Q", title=y_title, axis=alt.Axis(format=number_format)),
+            color=alt.Color("Series:N", title=None,
+                            scale=alt.Scale(domain=["Portfolio", "Bitcoin only"],
+                                            range=[PORT_COLOR, BTC_COLOR]),
+                            legend=alt.Legend(orient="bottom")),
+            tooltip=[alt.Tooltip("Date:T", format="%b %d, %Y"),
+                     alt.Tooltip("Series:N"),
+                     alt.Tooltip("Value:Q", title=y_title, format=number_format)],
+        )
+    )
+
+
 left, right = st.columns(2)
 with left:
     st.markdown("**Growth of $10,000**")
-    st.line_chart(pd.DataFrame({"Portfolio": port["value"], "Bitcoin only": btc["value"]}),
-                  color=[PORT_COLOR, BTC_COLOR], y_label="Value ($)")
+    st.altair_chart(comparison_chart(port["value"], btc["value"], "Value", "$,.0f"),
+                    width="stretch")
 with right:
     st.markdown("**Drop from previous peak**")
-    st.line_chart(pd.DataFrame({"Portfolio": port["drawdown"] * 100,
-                                "Bitcoin only": btc["drawdown"] * 100}),
-                  color=[PORT_COLOR, BTC_COLOR], y_label="Drawdown (%)")
+    st.altair_chart(comparison_chart(port["drawdown"], btc["drawdown"], "Drawdown", ".0%"),
+                    width="stretch")
 
 with st.expander("Side-by-side numbers"):
     metrics = ["Total return", "Yearly volatility", "Max drawdown", "95% daily VaR"]
