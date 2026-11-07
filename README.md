@@ -1,6 +1,6 @@
 # Crypto Portfolio Risk Dashboard
 
-**Live dashboard:** (link coming soon)
+**Live dashboard:** [open the app](https://crypto-risk-dashboard-e9jzh54yzdoh3qxtavcfkd.streamlit.app/)
 
 ## The question
 Does spreading money across 5 coins actually lower risk compared to holding only Bitcoin, and by how much?
